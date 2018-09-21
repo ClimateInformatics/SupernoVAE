@@ -5,9 +5,10 @@ import os
 
 # Load settings
 from configobj import ConfigObj
+
 # set the name of the world and the folder the ouput should be stored to
-info = ConfigObj("Config_Svae.ini")
-verbosity = info["Verbosity"]
+info        = ConfigObj("Config_Svae.ini")
+verbosity   = info["Verbosity"]
 
 # Setting verbosity of tensorflow
 if verbosity == 'No information':
@@ -18,17 +19,26 @@ if verbosity == 'Debug':
     tf.logging.set_verbosity(tf.logging.DEBUG)
 
 # General parameters of the network
-theta = float(info["Theta"])
-max_lat = int(info["Max_lat"])
-max_lon = int(info["Max_lon"])
-time_size = int(info["Time_size"])
-encoding_size  = int(np.round(time_size * theta))
+theta           = float(info["Theta"])
+max_lat         = int(info["Max_lat"])
+max_lon         = int(info["Max_lon"])
+time_size       = int(info["Time_size"])
+encoding_size   = int(np.round(time_size * theta))
 
 def make_model_fn(l_rate, random_seed):
-    # define the network
+    """
+    This function creates and returns a model function using two arguments.
+
+    Keyarguments
+    l_rate      --  The learning rate.
+    random_seed --  The random seed that should be used for all random number generators.
+    """
+
     def ave_model_fn(features, labels, mode):
-        """ The variational autoencoder function
-            The input should be the following
+        """ 
+        The variational autoencoder function
+            
+        The input should be the following
                 features    --  a dict containing two keys 'x' and 'y'. The 'x' value should contain the time series
                                 of the area around the point of interrest. The format should be 9*9*696. However, the
                                 correct format is not enforced.
@@ -48,15 +58,7 @@ def make_model_fn(l_rate, random_seed):
         # the input layer reshapes the input into the disired form
         input_layer = tf.reshape(features['x'], [-1, time_size, 1, 1, 1]) # HAS TO BE CHANGED
         input_layer = tf.transpose(input_layer, [0, 2, 3, 1, 4])
-        # encoding_size = 696 # Now is an evironment variable
 
-        # This tensor contains only the time series at the center to compare it later to the reconstructed time series
-        # HAS TO BE CHANGED TEMPORAL SOLUTION
-        #if time_size == 696:
-         #   input_slice_center = tf.slice(input_layer, [0, 4, 4, 0, 0], [-1, 1, 1, 696, 1])
-        #if  time_size == 1392:
-         #   input_slice_center  = input_layer
-            
         input_slice_center  = input_layer
 
         # All of the tensors used in the encoding part will start with the word 'encoding/'
@@ -156,7 +158,7 @@ def make_model_fn(l_rate, random_seed):
                                                          training=(mode == tf.estimator.ModeKeys.TRAIN),
                                                          name='batchnorm4')
 
-            # 4 convolutional layer
+            # fourth convolutional layer
             conv_4 = tf.layers.conv3d(inputs=batch_norm_4,
                                       filters=64 * 4,
                                       kernel_size=(1, 1, 4),
@@ -171,7 +173,7 @@ def make_model_fn(l_rate, random_seed):
                                                          training=(mode == tf.estimator.ModeKeys.TRAIN),
                                                          name='batchnorm5')
 
-            # third convolutional layer
+            # 5. convolutional layer
             conv_5 = tf.layers.conv3d(inputs=batch_norm_5,
                                       filters=64 * 4,
                                       kernel_size=(1, 1, 4),
@@ -186,7 +188,7 @@ def make_model_fn(l_rate, random_seed):
                                                          training=(mode == tf.estimator.ModeKeys.TRAIN),
                                                          name='batchnorm6')
 
-            # third convolutional layer
+            # 6. convolutional layer
             conv_6 = tf.layers.conv3d(inputs=batch_norm_6,
                                       filters=64 * 6,
                                       kernel_size=(1, 1, 4),
@@ -321,7 +323,7 @@ def make_model_fn(l_rate, random_seed):
                 training=(mode == tf.estimator.ModeKeys.TRAIN),
                 name='batchnorm4')
 
-            # the third deconvolution should leed to the exact same size as the input
+            # the 4.  deconvolution should leed to the exact same size as the input
             deconv_4 = tf.layers.conv3d_transpose(
                 inputs=deconv_3_bn,
                 filters=128,
@@ -339,7 +341,7 @@ def make_model_fn(l_rate, random_seed):
                 training=(mode == tf.estimator.ModeKeys.TRAIN),
                 name='batchnorm5')
 
-            # the third deconvolution should leed to the exact same size as the input
+            # the 5.  deconvolution should leed to the exact same size as the input
             deconv_5 = tf.layers.conv3d_transpose(
                 inputs=deconv_4_bn,
                 filters=1,
@@ -360,7 +362,7 @@ def make_model_fn(l_rate, random_seed):
                                                 training=(mode==tf.estimator.ModeKeys.TRAIN),
                                                 name='batchnorm6')
 
-                #the third deconvolution should leed to the exact same size as the input
+                #the 6. deconvolution should leed to the exact same size as the input
                 deconv_6                = tf.layers.conv3d_transpose(
                                                 inputs=deconv_5_bn,
                                                 filters=1,
@@ -404,17 +406,7 @@ def make_model_fn(l_rate, random_seed):
         # reconstructed time series of the middle point.
 
         reconstrucktion_error = tf.losses.mean_squared_error(labels=input_slice_center, predictions=deconv_slice)
-        # abs_diff   = tf.losses.absolute_difference(labels=input_slice_center, predictions=deconv_slice)
-
-        # input_fourier = tf.fft(tf.cast(input_slice_center,tf.complex64))
-        # output_fourier = tf.fft(tf.cast(deconv_slice,tf.complex64))
-
-        # reconstrucktion_error2  = tf.losses.absolute_difference(labels=input_fourier, predictions=output_fourier)
-
-        # meaninff , var_input = tf.nn.moments(tf.reshape(input_slice_center,(-1,696)), axes=[1])
-        # ddsgsdg , var_output = tf.nn.moments(tf.reshape(deconv_slice,(-1,696)), axes=[1])
-        # volatility_error = tf.losses.mean_squared_error(labels=var_input, predictions=var_output)
-
+        
         # The latent loss is the KL-Divergence between the latent distributions and a multivariat normal distribution
         latent_loss = tf.reduce_mean(
             0.5 * tf.reduce_sum(tf.square(means) + tf.square(deviations) - tf.log(tf.square(deviations) + epsilon) - 1, 1))
@@ -459,9 +451,10 @@ def make_model_fn(l_rate, random_seed):
 
 
 def save_encodings(generator):
-    """ A Function to save the latent distributions used by the variational auto encoder
+    """ 
+    A Function to save the latent distributions used by the variational auto encoder
 
-        Inputs:
+    Inputs:
             generator -- a generator producing dictionarys containing at leas 2 key value pairs
                             'encoding_mean' --  means of the latent distributions,
                             'encoding_dev'  --  deviations of the latent distributions
@@ -543,11 +536,10 @@ def parser(serialized_example):
 
 
 def train_input_fn():
-    # import os
-    # from configobj import ConfigObj
-    batch_size = 8
     """function to read in files and create an infinite stream of inputs for the vae model"""
 
+    batch_size = 8
+    
     # set the name and the folder of the files the dataset should be created out of
     info = ConfigObj("Config_Svae.ini")
     name = info["Name_datafile"]
@@ -598,10 +590,8 @@ def train_input_fn():
 
 
 def test_input_fn():
-    # import os
-    # from configobj import ConfigObj
-
     """methode to iterate through the files exactly once"""
+    
     # set the name and the folder of the files the dataset should be created out of
     info = ConfigObj("Config_Svae.ini")
     name = info["Name_datafile"]
