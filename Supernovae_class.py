@@ -1,9 +1,10 @@
+from configobj import ConfigObj
+
 class supernovae:
     import tensorflow as tf
     import numpy as np
     from sklearn.decomposition import PCA
     import itertools as it
-    from configobj import ConfigObj
     import os
 
     def __init__(self, random_seed=1, N_steps=100000):
@@ -11,7 +12,7 @@ class supernovae:
         # Check if config file exists
         if self.os.path.exists("Config_Svae.ini"):
             print("Configuration file found")
-            self.__config__ = self.ConfigObj("Lorenz_model.ini")
+            self.__config__ = ConfigObj("Config_Svae.ini")
             self.network_folder = self.__config__["Network_folder"]
             self.description = self.__config__["Description"]
             self.name_model = self.__config__["Name_model"]
@@ -19,6 +20,8 @@ class supernovae:
             self.verbosity = self.__config__["Verbosity"]
             self.theta = self.__config__["Theta"]
             self.time_size = self.__config__["Time_size"]
+            self.max_lat = int(self.__config__["Max_lat"])
+            self.max_lon = int(self.__config__["Max_lon"])
 
             # Create the structure of the folders
             self._create_folders()
@@ -40,10 +43,10 @@ class supernovae:
         if self.verbosity == 'Debug':
             self.tf.logging.set_verbosity(self.tf.logging.DEBUG)
 
-    def create_conf_file(self, Name_model, Description, Network_folder, Name_datafile, Verbosity, Theta, Time_size):
+    def create_conf_file(self, Name_model, Description, Network_folder, Name_datafile, Verbosity, Theta, Time_size, Max_lat, Max_lon):
 
         # Create the object and assign it values
-        config_file = self.ConfigObj()
+        config_file = ConfigObj()
         config_file.filename = "Config_Svae.ini"
         config_file["Network_folder"] = Network_folder
         config_file["Name_model"] = Name_model
@@ -52,6 +55,8 @@ class supernovae:
         config_file["Verbosity"] = Verbosity
         config_file["Theta"] = Theta
         config_file["Time_size"] = Time_size
+        config_file["Max_lat"] = Max_lat
+        config_file["Max_lon"] = Max_lon
         # Save the file
         config_file.write()
 
@@ -63,6 +68,8 @@ class supernovae:
         self.theta = config_file["Theta"]
         self.time_size = config_file["Time_size"]
         self.name_datafile = config_file["Name_datafile"]
+        self.max_lat = config_file["Max_lat"]
+        self.max_lon = config_file["Max_lon"]
 
         # Setting verbosity
         if self.verbosity == 'No information':
@@ -180,7 +187,7 @@ class supernovae:
         if save_output:
             svae.save_encodings(output)
             
-    def load_predictions(self, max_lat = 180, max_lon = 360):
+    def load_predictions(self):
         
         folder = self.network_folder + "/output/mean/"
         size = self.time_size 
@@ -191,13 +198,13 @@ class supernovae:
         p = 0
         
         # Find the file in the folder
-        for i, j in self.it.product(range(1, max_lat +1), range(1, max_lon +1)):
-            if self.verbose == 'Information' or self.verbose == 'Debug':
+        for lat, lon in self.it.product(range(0, self.max_lat), range(0, self.max_lon)):
+            if self.verbosity == 'Information' or self.verbosity == 'Debug':
                 if self.np.random.uniform() > 0.9995:
-                    print(str(p+1) + "/" + str(max_lat*max_lon) + ":" + 
-                          str(round(p*100/(max_lat*max_lon), 2)) + "%", end = "\r")
+                    print(str(p+1) + "/" + str(self.max_lat*self.max_lon) + ":" + 
+                          str(round(p*100/(self.max_lat*self.max_lon), 2)) + "%", end = "\r")
             p += 1
-            file_name = folder + '/' + name + str(i).zfill(3) + '_' + str(j).zfill(3) + '.bin'
+            file_name = folder + '/' + name + str(lat).zfill(3) + '_' + str(lon).zfill(3) + '.bin'
 
 
             # check if the file exists, store its name into the name list
@@ -212,27 +219,26 @@ class supernovae:
             self.embeddings.append(self.np.fromfile(n, dtype="float32"))
         
         #check that the first element has the correct length
-        assert(ret_values[0].shape[0] == size)
+        print(len(self.embeddings))
+        #assert(len(self.embeddings) == self.max_lat*self.max_lon)
 
         #return the list of arrays
         self.embeddings = self.np.array(self.embeddings)
         
-        if self.verbose == 'Information' or self.verbose == 'Debug':
+        if self.verbosity == 'Information' or self.verbosity == 'Debug':
             print('Predictions loaded ...')
             
-    def save_data_tf(self, dataset, max_lon = 180, max_lat = 360):
-        dataset = dataset.astype('float64')
+    def save_data_tf(self, dataset):
+        dataset = dataset.astype('float32')
 
         folder = self.network_folder + '/input_data/'
         Name = self.name_datafile + '_'
         name = None
 
         # Save it
-        for lat in range(1,max_lon):
-            for lon in range(1,max_lat):
-                i = lat - 1
-                j = lon - 1
-                sample = dataset[i, j,:]
+        for lat in range(0,self.max_lat):
+            for lon in range(0,self.max_lon):
+                sample = dataset[lat, lon,:]
                 name = str(folder)+'/' +str(Name) + str(lat).zfill(3) + '_' + str(lon).zfill(3) + '.bin'
                 sample.tofile(name)
                 if self.verbosity == 'Debug':
@@ -244,4 +250,4 @@ class supernovae:
         
     def PCA_embeddings(self):
         self.principal_components = self.PCA()
-        self.pca.fit(self.np.asarray(self.principal_components).transpose())
+        self.principal_components.fit(self.np.asarray(self.embeddings).transpose())

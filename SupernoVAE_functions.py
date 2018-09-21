@@ -19,6 +19,8 @@ if verbosity == 'Debug':
 
 # General parameters of the network
 theta = float(info["Theta"])
+max_lat = int(info["Max_lat"])
+max_lon = int(info["Max_lon"])
 time_size = int(info["Time_size"])
 encoding_size  = int(np.round(time_size * theta))
 
@@ -456,7 +458,7 @@ def make_model_fn(l_rate, random_seed):
     return ave_model_fn
 
 
-def save_encodings(generator, max_lat = 180, max_lon = 360):
+def save_encodings(generator):
     """ A Function to save the latent distributions used by the variational auto encoder
 
         Inputs:
@@ -499,8 +501,8 @@ def save_encodings(generator, max_lat = 180, max_lon = 360):
     i = 0
 
     # go through the lat and lon values in the order they are in the dataset
-    for lat in range(1, max_lat +1):
-        for lon in range(1, max_lon +1):
+    for lat in range(0, max_lat):
+        for lon in range(0, max_lon):
             # create the name for the next files
             name_mean = directory_mean + name + str(lat).zfill(3) + '_' + str(lon).zfill(3) + '.bin'
             name_dev = directory_dev + name + str(lat).zfill(3) + '_' + str(lon).zfill(3) + '.bin'
@@ -556,8 +558,8 @@ def train_input_fn():
     names = []
 
     # find the files coressponding to the naming sceme folder/name_positon.bin
-    for lat in range(1, 180):
-        for lon in range(1, 360):
+    for lat in range(0, max_lat):
+        for lon in range(0, max_lon):
             directory = folder + '/' + name + '_' + str(lat).zfill(3) + '_' + str(lon).zfill(3) + '.bin'
 
             # if the file with this naming sceme exists
@@ -610,8 +612,8 @@ def test_input_fn():
     names = []
 
     # go through the names of the files that should exist
-    for lat in range(0, 181):
-        for lon in range(0, 361):
+    for lat in range(0, max_lat):
+        for lon in range(0, max_lon):
             directory = folder + '/' + name + '_' + str(lat).zfill(3) + '_' + str(lon).zfill(3) + '.bin'
 
             # if the file exists report sucsess to the stdout and add the name to the list of files
