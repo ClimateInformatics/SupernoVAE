@@ -1,11 +1,10 @@
 # SupernoVAE: VAE based Kernel-PCA for analysis of spatio temporal earth data
 
-This git repository contains the python code for the Supernova framework presented on the **Climate Informatic Workshop 2018 in Boulder**. For explanations pleas refer to the paper in the proceedings of that workshop. Please cite this paper if you use SupernoVAE.
+This git repository contains the python code for the SupernoVAE framework presented on the **Climate Informatic Workshop 2018 in Boulder**. For explanations please refer to the paper in the proceedings of that workshop. Please cite this paper if you use SupernoVAE.
 
 ## Content of the Repository
 
-This repository contains four files:
-[Config_Svae](Config_Svae.ini)
+This repository contains three files:
 
 [Supernovae_class](Supernovae_class.py)
 
@@ -25,7 +24,7 @@ This file contains the runtime configurations for the SupernoVAE class. It can b
 This file contains the supernovae class. It also contains all needed functions to create a configuration file and the needed folder structure as well as the functions to load and store data.
 
 ### SupernoVAE_functions.py
-This file contains the model function of the neural network used as well as the construction of the data pipeline. If you want to alter the structure of the neural network, or the input data formate, change this file.
+This file contains the model function of the neural network used as well as the construction of the data pipeline. If you want to alter the structure of the neural network, or the input data format, change this file.
 
 ## Requirements
-We tested the code using Python 3.6 and Tensorflow-gpu 1.8
+We tested the code using Python 3.6 and Tensorflow 1.8
