@@ -6,8 +6,11 @@ This git repository contains the python code for the Supernova framework present
 
 This repository contains four files:
 [Config_Svae](Config_Svae.ini)
+
 [Supernovae_class](Supernovae_class.py)
+
 [SupernoVAE_functions](SupernoVAE_functions.py)
+
 [Supernovae_tutorial](Supernovae_tutorial.ipynb)
 
 ## Getting started
