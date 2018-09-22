@@ -17,9 +17,6 @@ To get started clone the repository and follow the instructions in the [Supernov
 
 ## Description of the Files
 
-### Config_Svae.ini
-This file contains the runtime configurations for the SupernoVAE class. It can be created using the build function included in the Supernovae_class.py.
-
 ### Supernovae_class.py
 This file contains the supernovae class. It also contains all needed functions to create a configuration file and the needed folder structure as well as the functions to load and store data.
 
