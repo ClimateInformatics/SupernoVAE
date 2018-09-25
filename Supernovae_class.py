@@ -12,7 +12,21 @@ class supernovae:
     
     from sklearn.decomposition import PCA
 
-    def __init__(self, random_seed=1, N_steps=100000):
+    def __init__(self,
+                 Create_ConFile     = False,
+                 Name_model         = None,
+                 Description        = None,
+                 Network_folder     = None,
+                 Verbosity          = None,
+                 Theta              = None,
+                 Time_size          = None,
+                 Max_lat            = None,
+                 Max_lon            = None,
+                 random_seed        = 1,
+                 N_steps            = 100000):
+
+        if Create_ConFile:
+            create_conf_file(*karg)
         """
         The initialization function of the class. This function will set the hyperparameters of the enviroment of the 
         task you want to solve using SupernoVAE. Also the structure of the Folders will be created. If the config 
@@ -25,6 +39,8 @@ class supernovae:
         """
         # Check if config file exists. If the config file exist, all enviroment variables will be loaded from it. The 
         # config file has to be named 'Config_Svae.ini'
+        self.N_steps = N_steps
+        self.Description = Description
         if self.os.path.exists("Config_Svae.ini"):
             print("Configuration file found")
             
@@ -32,7 +48,6 @@ class supernovae:
             self.network_folder = self.__config__["Network_folder"]
             self.description    = self.__config__["Description"]
             self.name_model     = self.__config__["Name_model"]
-            self.name_datafile  = self.__config__["Name_datafile"]
             self.verbosity      = self.__config__["Verbosity"]
             self.theta          = self.__config__["Theta"]
             self.time_size      = self.__config__["Time_size"]
@@ -43,6 +58,7 @@ class supernovae:
             self._create_folders()
 
         else:
+
             #Set all values to 'None'
             self.network_folder = None
             self.description    = None
@@ -50,7 +66,6 @@ class supernovae:
             self.verbosity      = None
             self.theta          = None
             self.time_size      = None
-            self.name_datafile  = None
 
             #Put a message on the std-out.
             print("No configuration file found, use create_conf_file() to create one")
@@ -66,16 +81,8 @@ class supernovae:
         if self.verbosity == 'Debug':
             self.tf.logging.set_verbosity(self.tf.logging.DEBUG)
 
-    def create_conf_file(   self, 
-                            Name_model      = 'World_toy_Example', 
-                            Description     = None, 
-                            Network_folder  = 'World_test_main_folder', 
-                            Name_datafile   = 'World_toy', 
-                            Verbosity       = None,
-                            Theta           = 0.1, 
-                            Time_size       = 696, 
-                            Max_lat         = 60, 
-                            Max_lon         = 60):
+    def create_conf_file(   self, Name_model, Description, Network_folder, Verbosity,
+                            Theta, Time_size, Max_lat, Max_lon):
         """
         The function that creates the config file. The config file will be stored and the configuration will be used 
         for this instance of supernovae
@@ -86,18 +93,17 @@ class supernovae:
         Network_folder  --  The name of the direction in which all input and output data will be stored. This can be 
                             changed to save different runs of the same model in different locations. The default value
                             is 'World_test_main_folder'.
-        Name_datafile   --  This will be the begining of the name of all outputs of the method. If not set it will be 
-                            'World_toy'.
         Verbosity       --  Will set the amount of information Tensorflow will output during the training and 
                             prediction. There are three possible values 'No information', for only errors and important
                             information. 'Information' will give more information and 'Debug' will also include debug
                             information. The default value is 'None' which is the same as 'No information'.
-        Theta           --  Theta is the ratio of the dimensionality of the bottelnack of the autoencoder and the 
+        Theta           --  Theta is the ra# tio of the dimensionality of the bottelnack of the autoencoder and the
                             dimensionality of the input. The default is 0.1 meaning that the input is ten times bigger
                             than the bottelnack.
         Time_size       --  The number of timesteps in each timeseries. The default value is 696.
         Max_lat         --  The number of rows in the data grid. Default value is 60.
         Max_lon         --  The number of columns in the data grid. Default value is 60.
+        :type Time_size: object
         """
         # Create the object and assign it values
         config_file = ConfigObj()
@@ -105,7 +111,6 @@ class supernovae:
         config_file["Network_folder"]   = Network_folder
         config_file["Name_model"]       = Name_model
         config_file["Description"]      = Description
-        config_file["Name_datafile"]    = Name_datafile
         config_file["Verbosity"]        = Verbosity
         config_file["Theta"]            = Theta
         config_file["Time_size"]        = Time_size
@@ -121,7 +126,6 @@ class supernovae:
         self.verbosity                  = config_file["Verbosity"]
         self.theta                      = config_file["Theta"]
         self.time_size                  = config_file["Time_size"]
-        self.name_datafile              = config_file["Name_datafile"]
         self.max_lat                    = config_file["Max_lat"]
         self.max_lon                    = config_file["Max_lon"]
 
@@ -267,7 +271,7 @@ class supernovae:
         folder = self.network_folder + "/output/mean/"
         size = self.time_size 
         dtype=self.np.float32,
-        name = self.name_datafile
+        name = self.name_model
 
         names = [] # Store the names and find names in the directory
         p = 0
@@ -308,8 +312,7 @@ class supernovae:
         dataset = dataset.astype('float32')
 
         folder = self.network_folder + '/input_data/'
-        Name = self.name_datafile + '_'
-        name = None
+        Name = self.name_model + '_'
 
         # Save it
         for lat in range(0,self.max_lat):

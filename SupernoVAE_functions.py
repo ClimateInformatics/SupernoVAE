@@ -465,7 +465,7 @@ def save_encodings(generator):
     info = ConfigObj("Config_Svae.ini")
     folder = './' + info["Network_folder"]
     verbosity = info["Verbosity"]
-    name = info["Name_datafile"]
+    name = info["Name_model"]
     
     # set the directorys for the means and deviations
     directory_mean = folder + '/output/mean/'
@@ -542,7 +542,7 @@ def train_input_fn():
     
     # set the name and the folder of the files the dataset should be created out of
     info = ConfigObj("Config_Svae.ini")
-    name = info["Name_datafile"]
+    name = info["Name_model"]
     folder = './' + info["Network_folder"] + '/input_data'
     verbosity = info["Verbosity"]
 
@@ -594,7 +594,7 @@ def test_input_fn():
     
     # set the name and the folder of the files the dataset should be created out of
     info = ConfigObj("Config_Svae.ini")
-    name = info["Name_datafile"]
+    name = info["Name_model"]
     folder = './' + info["Network_folder"] + '/input_data'
     verbosity = info["Verbosity"]
 
