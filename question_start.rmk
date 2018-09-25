@@ -1,0 +1,54 @@
+# Supernovae Creation Configfile 
+
+## Project questions
+1. How is the project called? *Network_folder*
+2. Description. *Optional short description*
+2.5 Do you want us to convert the data? # Data has to be in .bin numpy format. 
+3. Do you want to copy your data?
+	 # Mandatory if the data is not already in the correct format.
+         # Then the input folder should not be stored. 
+4. Where is your input data store?
+5. Do you want stored all the outputs? # Otherwise 5 samples will be stored.
+
+## Input data
+1. What is the dimensionality of each sample? Ex.'1-4'
+2. How many variables has every example?
+3. Hoow many examples are there?
+4. What is the dimensionallity of your data grid? '1-4'
+5. What is the size of your example? # For each dimension
+6. What is the size of the grid.  # For each dimension 
+
+## Network
+**According to the information from the input_data, the recommended architecture is:**
+1. Do you want to change it?
+2. VAE or LSTM? 
+	If VAE:
+	Number of layer? # More than 10 are discouraged. 
+	Number of filter per layer? # Introduce them in a dict.
+2. Theta? # Recomended from (0-1]
+
+## Learning algorithm
+1. Wich learning algorith you prefer? 'SGD' or 'SGD with momentum' and 'Adam'
+2. Momentum? (0-1) # In case of momentum
+3. Beta1 and Beta2 in case of Adam. # Always recommend 0.9 and 0.999
+4. Number of epocs
+5. Bach size
+6. Learning rate
+7. Loss function: MSE, L1, mix(Nu)
+
+## Output and Evauation
+1. How many reconstruction series do you want to check? # 5 Default. 
+2. Do ou want the regression graph? Between reconstrucction and input
+3. How do you want to test generaliztion?
+	1. Do you have a test dataset in other folder? Which
+	2. Uniform random sampling Amount (%)
+	3. k-fold Testing? 
+	4. Random k-fold?
+4. Evaluate the kernel function?
+5. Checking compression on the hold out set?
+	Same as above
+6. How many PC plot?
+7. Which PC do you want to see as RGB? # Default 3
+
+
+
